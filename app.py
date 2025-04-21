@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-
+import random 
 # This is the size of the board
 ROWS = 6
 COLS = 7
@@ -30,7 +30,7 @@ def drop_piece(board, col, player):
         if board[row][col] == 0:
             board[row][col] = player
             return True
-    return False  # If column is full
+    return False  # If the column is full
 
 # Here we created a clickable column buttons so we can drop the pieces. 
 cols = st.columns(COLS)
@@ -39,7 +39,21 @@ for i in range(COLS):
         if st.session_state.turn == 1:
             success = drop_piece(st.session_state.board, i, 1)
             if success:
-                st.session_state.turn = 2  # This will be the next turn for the AI 
+                st.session_state.turn = 2  # This will be the next turn for the AI
+
+#This section is the AI just playing the game without the implemented minimax and Alpha beta pruning.
+def is_valid_location(board, col): #This function is to tell whether or not a space is full and a piece could be placed.
+    return board[0][col] == 0
+
+def get_valid_locations(board): #This return all the open columns
+    return [col for col in range(COLS) if is_valid_location(board, col)]
+if st.session_state.turn == 2:
+    valid_cols = get_valid_locations(st.session_state.board)
+    if valid_cols:
+        col = random.choice(valid_cols)
+        drop_piece(st.session_state.board, col, 2)
+        st.session_state.turn = 1  
 
 draw_board(st.session_state.board)
 # This displays the board
+
