@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import random 
+
 # This is the size of the board
 ROWS = 6
 COLS = 7
@@ -32,6 +33,34 @@ def drop_piece(board, col, player):
             return True
     return False  # If the column is full
 
+# This function checks if either player has won
+def check_winner(board, piece):
+    # Horizontal check
+    for r in range(ROWS):
+        for c in range(COLS - 3):
+            if all(board[r][c + i] == piece for i in range(4)):
+                return True
+
+    # Vertical check
+    for c in range(COLS):
+        for r in range(ROWS - 3):
+            if all(board[r + i][c] == piece for i in range(4)):
+                return True
+
+    # Diagonal check (top-left to bottom-right)
+    for r in range(ROWS - 3):
+        for c in range(COLS - 3):
+            if all(board[r + i][c + i] == piece for i in range(4)):
+                return True
+
+    # Diagonal check (bottom-left to top-right)
+    for r in range(3, ROWS):
+        for c in range(COLS - 3):
+            if all(board[r - i][c + i] == piece for i in range(4)):
+                return True
+
+    return False
+
 # Here we created a clickable column buttons so we can drop the pieces. 
 cols = st.columns(COLS)
 for i in range(COLS):
@@ -39,7 +68,11 @@ for i in range(COLS):
         if st.session_state.turn == 1:
             success = drop_piece(st.session_state.board, i, 1)
             if success:
-                st.session_state.turn = 2  # This will be the next turn for the AI
+                if check_winner(st.session_state.board, 1):
+                    st.success("🎉 Player (🔴) Wins!")
+                    st.session_state.turn = 0  #Checks if player wins and freezes the game
+                else:
+                    st.session_state.turn = 2  # This will be the next turn for the AI
 
 #This section is the AI just playing the game without the implemented minimax and Alpha beta pruning.
 def is_valid_location(board, col): #This function is to tell whether or not a space is full and a piece could be placed.
@@ -47,13 +80,17 @@ def is_valid_location(board, col): #This function is to tell whether or not a sp
 
 def get_valid_locations(board): #This return all the open columns
     return [col for col in range(COLS) if is_valid_location(board, col)]
+
 if st.session_state.turn == 2:
     valid_cols = get_valid_locations(st.session_state.board)
     if valid_cols:
         col = random.choice(valid_cols)
         drop_piece(st.session_state.board, col, 2)
-        st.session_state.turn = 1  
+        if check_winner(st.session_state.board, 2):
+            st.success("🟡 AI Wins!")
+            st.session_state.turn = 0  # Checks if AI wins the game and freezes the game.
+        else:
+            st.session_state.turn = 1  
 
 draw_board(st.session_state.board)
 # This displays the board
-
